@@ -1,4 +1,4 @@
-
+-- Hello bạn hiền
 CREATE TYPE ID
 	FROM INTEGER NOT NULL
 go

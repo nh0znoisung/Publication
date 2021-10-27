@@ -336,7 +336,7 @@ INSERT INTO IDNGUOICOQUYENTACGIA VALUES ('200008');
 
 
 ---------------------------------------
--- Tiêu chí
+-- Tiêu chí: Hình thức, tính khả thi, tính thuyết phục, tính chính xác
 
 
 
@@ -348,7 +348,8 @@ INSERT INTO IDNGUOICOQUYENTACGIA VALUES ('200008');
 
 
 
-
+-------------------------------------
+-- Bài báo được chấp nhận
 
 
 ----------------------------------------

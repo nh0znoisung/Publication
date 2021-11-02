@@ -1,4 +1,5 @@
-﻿--------------------------------------------------
+﻿
+--------------------------------------------------
 -- INSERT NHAKHOAHOC:  Họ - Email cá nhân - tên - địa chỉ - chuyên môn - vai trò
 -- Vai trò: TACGIA, BIENTAPVIEN, NGUOIPHANBIEN
 
@@ -6,7 +7,7 @@
 INSERT INTO NHAKHOAHOC VALUES (N'Quách Minh',N'Tuấn','minhtuan2001@gmail.com',N'Đồng Nai','Computer Science','BIENTAPVIEN','2001/10/07','100001',N'Hồ Chí Minh',N'Biên tập viên');
 INSERT INTO NHAKHOAHOC VALUES (N'Nguyễn Thành',N'Nhân','nhannguyen464@gmail.com',N'Nghệ An','Computer Science','BIENTAPVIEN','1997-03-11','100002',N'Huế',N'Biên tập viên');
 INSERT INTO NHAKHOAHOC VALUES (N'Lê Phú',N'Lộc','locle543@gmail.com',N'Hà Tĩnh','Mechanical Engineering','BIENTAPVIEN','2000-12-22','100003',N'Đà Nẵng',N'Biên tập viên');
-INSERT INTO NHAKHOAHOC VALUES (N'Nguyễn Phúc Kiều',N'Ly','lyly2001@gmail.com',N'Hồ Chí Minh','Electrical Engineering','BIENTAPVIEN','1998-07-01','100004',N'Biên tập viên');
+INSERT INTO NHAKHOAHOC VALUES (N'Nguyễn Phúc Kiều',N'Ly','lyly2001@gmail.com',N'Hồ Chí Minh','Mechanical Engineering','BIENTAPVIEN','2000-12-22','100004',N'Đà Nẵng',N'Biên tập viên');
 INSERT INTO NHAKHOAHOC VALUES (N'Võ Anh',N'Nguyên','rongAkka@gmail.com',N'Kon Tum','Architecture','BIENTAPVIEN','1997-12-12','100005',N'Hồ Chí Minh',N'Biên tập viên');
 INSERT INTO NHAKHOAHOC VALUES (N'Võ Hồng',N'Phúc','hongphucvo0809@gmail.com',N'Cần Thơ','Computer Engineering','BIENTAPVIEN','1997-03-11','100006',N'Hồ Chí Minh',N'Biên tập viên');
 

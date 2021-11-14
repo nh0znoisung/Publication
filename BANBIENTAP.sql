@@ -1,77 +1,86 @@
 ﻿-- Ban biên tập -> Create View, Role, Permission
 -- Câu 1: Trigger Phân công phản biện
---CREATE OR ALTER TRIGGER tên_trigger ON tên_bảng after
---FOR {DELETE, INSERT, UPDATE}
---AS 
---câu_lệnh_sql       old value
-
+-- Bảng thực hiện phản biện có vấn đề
+CREATE OR ALTER PROCEDURE capnhat_phancongphanbien
+(
+@BAIPHANBIEN_ID nvarchar(100),
+@ID_BAIBAO nvarchar(100),
+@DIADIEMPHANBIEN datetime,
+@NGAYPHANBIEN varchar(20),
+@NHAKHOAHOC_ID nvarchar(100)
+)
+AS
+BEGIN
+INSERT INTO PHANCONGPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NGAYPHANBIEN,@DIADIEMPHANBIEN,@NHAKHOAHOC_ID);
+--INSERT INTO THUCHIENPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NHAKHOAHOC_ID);
+END;
+go
 
 
 -- Câu 2: Trigger Trạng thái xử lý 1 bài báo # Chỉ được chuyển 1 bậc
 -- CHuyển thành procedure để mỗi khi gọi thì nó sẽ chỉnh lên 1 bậc, dùng If_else
 -- Chưa phản biện, Proceduce -> có 1 input, vì Function phải return gì đó
-CREATE OR ALTER FUNCTION capnhat_trangthaixuly (@id_baibao nvarchar(100))
-
+--IF (TRANGTHAIXULI = 'CHUAPHANBIEN') THEN
+--	SET TRANGTHAIXULI = 'PHANBIEN'
+--ELSEIF TRANGTHAIXULI = 'PHANBIEN'
+--	SET TRANGTHAIXULI = 'PHANHOIPHANBIEN'
+--IF TRANGTHAIXULI = 'PHANHOIPHANBIEN'
+--	SET TRANGTHAIXULI = 'HOANTATPHANBIEN'
+--IF TRANGTHAIXULI = 'HOANTATPHANBIEN'
+--	SET TRANGTHAIXULI = 'XUATBAN'
+--IF TRANGTHAIXULI = 'XUATBAN'
+--	SET TRANGTHAIXULI = 'DADANG'
+--IF TRANGTHAIXULI = 'DADANG'
+--	SET TRANGTHAIXULI = ''
+CREATE OR ALTER PROCEDURE capnhat_trangthaixuly 
+(
+@id_baibao nvarchar(100),
+@TRANGTHAIXULI varchar(20)
+)
 AS
 BEGIN
-	UPDATE BAIBAO
-	IF TRANGTHAIXULI = 'CHUAPHANBIEN'
-		SET TRANGTHAIXULI = 'PHANBIEN'
-	IF TRANGTHAIXULI = 'PHANBIEN'
-		SET TRANGTHAIXULI = 'PHANHOIPHANBIEN'
-	IF TRANGTHAIXULI = 'PHANHOIPHANBIEN'
-		SET TRANGTHAIXULI = 'HOANTATPHANBIEN'
-	IF TRANGTHAIXULI = 'HOANTATPHANBIEN'
-		SET TRANGTHAIXULI = 'XUATBAN'
-	IF TRANGTHAIXULI = 'XUATBAN'
-		SET TRANGTHAIXULI = 'DADANG'
-	--IF TRANGTHAIXULI = 'DADANG'
-	--	SET TRANGTHAIXULI = ''
-	WHERE b.ID_BAIBAO = @id_baibao
+UPDATE BAIBAO 
+SET TRANGTHAIXULI = @TRANGTHAIXULI
+WHERE ID_BAIBAO = @id_baibao
 END;
+go
 
-CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Dadang(@tgID nvarchar(100))
-RETURNS TABLE
-AS
-RETURN
-(
-	SELECT * 
-	FROM BAIBAO b
-	WHERE TRANGTHAIXULI='DADANG' AND 
-		   b.ID_BAIBAO IN (SELECT ID_BAIBAO FROM SANGTAC WHERE NHAKHOAHOC_ID = @tgID)
-)
-GO
 
 
 -- Câu 3: Trigger kết quả sau phản biện của 1 bài báo
+CREATE OR ALTER PROCEDURE capnhat_ketquasauphanbien
+(
+@ID_BAIBAO nvarchar(100),
+@ID_baiphanbien nvarchar(100),
+@ghichutacgia nvarchar(100),
+@ghichubanbientap nvarchar(100),
+@ngaythongbao datetime,
+@ketqua Ketquabaiphanbien,
+@cacchitietkhac nvarchar(1000)
+)
+as
+	UPDATE BAIPHANBIEN
+	SET GHICHU_BANBIENTAP=@ghichubanbientap ,GHICHU_TACGIA =@ghichutacgia , NGAYTHONGBAO=@ngaythongbao ,KETQUA=@ketqua, CACCHITIETKHAC=@cacchitietkhac
+	where BAIPHANBIEN_ID = @ID_baiphanbien AND ID_BAIBAO = @ID_BAIBAO
+go
+
 
 -- Câu 4: Trigger kết quả sau hoàn tất phản biện của 1 bài báo
--- IF trạng thái xử lý 
-
-
-
---------------- Nghiên cứu là code thuần or Procedure và how to convert it
---------Procedure return table
---CREATE PROCEDURE SelectAllCustomers
---AS
---SELECT * FROM Customers
---GO;
-
---EXEC update_trangthaixuly
---------Procedure return 1 biến
---CREATE PROCEDURE spNhanvien
---@nhanvien_name VARCHAR(50) OUT
---AS
---BEGIN
---DECLARE @nhanvien_id INT;
---SET @nhanvien_id = 8;
---IF @nhanvien_id < 10
---SET @nhanvien_name = 'Smith';
---ELSE
---SET @nhanvien_name = 'Lawrence';
-
---END;
-
+CREATE OR ALTER PROCEDURE capnhat_ketquasauhoantatphanbien
+(
+@ID_BAIBAO nvarchar(100),
+@ID_baiphanbien nvarchar(100),
+@ghichutacgia nvarchar(100),
+@ghichubanbientap nvarchar(100),
+@ngaythongbao datetime,
+@ketqua Ketquabaiphanbien,
+@cacchitietkhac nvarchar(1000)
+)
+as
+	UPDATE BAIPHANBIEN
+	SET GHICHU_BANBIENTAP=@ghichubanbientap ,GHICHU_TACGIA =@ghichutacgia , NGAYTHONGBAO=@ngaythongbao ,KETQUA=@ketqua, CACCHITIETKHAC=@cacchitietkhac
+	where BAIPHANBIEN_ID = @ID_baiphanbien AND ID_BAIBAO = @ID_BAIBAO
+go
 
 -- Câu 5: Xem bài báo theo (nghiên cứu, PB sách, tổng quan) chưa được xử lý PB -> Trước cái Phản biện
 -- Trang thai xu ly = PhanBien (CHUAPHANBIEN)
@@ -139,7 +148,7 @@ WHERE TRANGTHAIXULI='DADANG' AND
 -- Trang thai xu ly = XUATBAN, Có cần check id là Tacgia
 -- 
 
-CREATE OR ALTER OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Xuatban(@tgID nvarchar(100))
+CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Xuatban(@tgID nvarchar(100))
 RETURNS TABLE
 AS
 RETURN

@@ -29,6 +29,18 @@ go
 
 
 
+CREATE TYPE Tieuchi
+	FROM VARCHAR(20) NULL
+go
+
+
+
+CREATE TYPE DiemTieuChi
+	FROM INTEGER NULL
+go
+
+
+
 CREATE RULE Val_Rule_Gender
 	AS @col IN ('M', 'F', 'U')
 go
@@ -42,7 +54,7 @@ go
 
 
 CREATE RULE Val_Rule_TRANGTHAIXULI
-	AS @col IN ('HOANTATPHANBIEN', 'PHANHOIPHANBIEN', 'PHANBIEN', 'XUATBAN', 'DADANG')
+	AS @col IN ('HOANTATPHANBIEN', 'PHANHOIPHANBIEN', 'PHANBIEN', 'XUATBAN', 'DADANG', 'CHUAPHANBIEN')
 go
 
 
@@ -60,7 +72,25 @@ go
 
 
 CREATE RULE Val_Rule_VAITRO
-	AS @col IN ('NHAKHOAHOC', 'NGUOIPHANBIEN', 'BIENTAPVIEN')
+	AS @col IN ('TACGIA', 'NGUOIPHANBIEN', 'BIENTAPVIEN')
+go
+
+
+
+CREATE RULE Val_Rule_TIEUCHI
+	AS @col IN ('HINHTHUC', 'TINHKHATHI', 'TINHTHUYETPHUC', 'TINHCHINHXAC')
+go
+
+
+
+CREATE RULE Val_Rule_DIEMTIEUCHI
+	AS @col BETWEEN 0 AND 100
+go
+
+
+
+
+exec sp_bindrule 'Val_Rule_DIEMTIEUCHI', 'ID'
 go
 
 
@@ -89,6 +119,18 @@ go
 
 
 
+
+exec sp_bindrule 'Val_Rule_TIEUCHI', 'Tieuchi'
+go
+
+
+
+
+exec sp_bindrule 'Val_Rule_DIEMTIEUCHI', 'DiemTieuChi'
+go
+
+
+
 CREATE TABLE BAIBAO
 ( 
 	ID_BAIBAO            nvarchar(100)  NOT NULL ,
@@ -96,7 +138,9 @@ CREATE TABLE BAIBAO
 	FILEBAIBAO           nvarchar(100)  NULL ,
 	TIEUDE               nvarchar(150)  NULL ,
 	TOMTAT               nvarchar(1500)  NULL ,
-	TONGSOTRANG          integer  NULL 
+	TONGSOTRANG          integer  NULL , 
+  NHAKHOAHOC_ID        nvarchar(100) NULL, --tác giả liên lạc,
+	NGAYNHAN             date  NULL
 )
 go
 
@@ -137,11 +181,11 @@ go
 CREATE TABLE BAIPHANBIEN
 ( 
 	BAIPHANBIEN_ID       nvarchar(100)  NOT NULL ,
+    ID_BAIBAO            nvarchar(100)  NOT NULL ,
 	GHICHU_TACGIA        nvarchar(1000)  NULL ,
 	GHICHU_BANBIENTAP    nvarchar(1000)  NULL ,
-	NGAYTHONGBAO         datetime  NOT NULL ,
+	NGAYTHONGBAO         date  NOT NULL ,
 	KETQUA               Ketquabaiphanbien ,
-	ID_BAIBAO            nvarchar(100)  NOT NULL ,
 	CACCHITIETKHAC       nvarchar(1000)  NULL 
 )
 go
@@ -163,27 +207,10 @@ go
 
 
 
-CREATE TABLE BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-( 
-	BAIPHANBIEN_ID       nvarchar(100)  NOT NULL ,
-	ID_BAIBAO            nvarchar(100)  NOT NULL ,
-	TENTIEUCHI           nvarchar(100)  NOT NULL ,
-	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
-)
-go
-
-
-
-ALTER TABLE BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-	ADD CONSTRAINT XPKBAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC,TENTIEUCHI ASC,NHAKHOAHOC_ID ASC)
-go
-
-
-
 CREATE TABLE BIENTAPVIEN
 ( 
-	EMAILCOQUAN          nvarchar(100)  NULL ,
-	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
+  EMAILCOQUAN          nvarchar(200)  NULL,
+  NHAKHOAHOC_ID        nvarchar(100)  NOT NULL
 )
 go
 
@@ -209,41 +236,13 @@ go
 
 
 
-CREATE TABLE NGUOICOQUYENPHANBIEN
-( 
-	TRINHDO              nvarchar(100)  NULL ,
-	SODIENTHOAI          nvarchar(100)  NULL ,
-	NGAYCONGTAC          datetime  NULL ,
-	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
-)
-go
-
-
-
-ALTER TABLE NGUOICOQUYENPHANBIEN
-	ADD CONSTRAINT XPKNGUOICOQUYENPHANBIEN PRIMARY KEY  CLUSTERED (NHAKHOAHOC_ID ASC)
-go
-
-
-
-CREATE TABLE NGUOICOQUYENTACGIA
-( 
-	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
-)
-go
-
-
-
-ALTER TABLE NGUOICOQUYENTACGIA
-	ADD CONSTRAINT XPKNGUOICOQUYENTACGIA PRIMARY KEY  CLUSTERED (NHAKHOAHOC_ID ASC)
-go
-
-
-
 CREATE TABLE NGUOIPHANBIEN
 ( 
 	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL ,
-	EMAILCOQUAN          nvarchar(200)  NULL 
+	EMAILCOQUAN          nvarchar(200)  NULL ,
+	SODIENTHOAI          nvarchar(100)  NULL ,
+	TRINHDO              nvarchar(100)  NULL ,
+	NGAYCONGTAC          date  NULL 
 )
 go
 
@@ -251,18 +250,16 @@ go
 
 ALTER TABLE NGUOIPHANBIEN
 	ADD CONSTRAINT XPKNGUOIPHANBIEN PRIMARY KEY  CLUSTERED (NHAKHOAHOC_ID ASC)
-go
-
+  go
 
 
 CREATE TABLE NHAKHOAHOC
 ( 
 	HO                   nvarchar(100)  NULL ,
-	EMAILCANHAN          nvarchar(100)  NULL ,
 	TEN                  nvarchar(100)  NULL ,
+	EMAILCANHAN          nvarchar(100)  NULL ,
 	DIACHI               nvarchar(200)  NULL ,
 	CHUYENMON            nvarchar(100)  NULL ,
-	VAITRO               nvarchar(100)  NOT NULL ,
 	NGAYSINH             DATE  NULL ,
 	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL ,
 	COQUANCONGTAC        nvarchar(500)  NULL ,
@@ -316,16 +313,15 @@ CREATE TABLE PHANCONGPHANBIEN
 ( 
 	BAIPHANBIEN_ID       nvarchar(100)  NOT NULL ,
 	ID_BAIBAO            nvarchar(100)  NOT NULL ,
-	NGAYPHANBIEN         datetime  NULL ,
-	DIADIEMPHANBIEN      nvarchar(200)  NULL ,
-	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
+	NGAYPHANBIEN         date  NULL ,
+	DIADIEMPHANBIEN      nvarchar(200)  NULL
 )
 go
 
 
 
 ALTER TABLE PHANCONGPHANBIEN
-	ADD CONSTRAINT XPKPHANCONGPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC,NHAKHOAHOC_ID ASC)
+	ADD CONSTRAINT XPKPHANCONGPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC)
 go
 
 
@@ -340,7 +336,7 @@ go
 
 
 ALTER TABLE SANGTAC
-	ADD CONSTRAINT XPKSANGTAC PRIMARY KEY  CLUSTERED (ID_BAIBAO ASC,NHAKHOAHOC_ID ASC)
+	ADD CONSTRAINT XPKSANGTAC PRIMARY KEY  CLUSTERED (NHAKHOAHOC_ID ASC,ID_BAIBAO ASC)
 go
 
 
@@ -361,8 +357,6 @@ go
 
 CREATE TABLE TACGIALIENLAC
 ( 
-	TENBAIBAO            nvarchar(100)  NULL ,
-	THOIGIANGUI          datetime  NULL ,
 	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL 
 )
 go
@@ -386,23 +380,25 @@ go
 
 
 ALTER TABLE THUCHIENPHANBIEN
-	ADD CONSTRAINT XPKBAIPHANBIEN_NGUOICOQUYENPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC,NHAKHOAHOC_ID ASC)
+	ADD CONSTRAINT XPKTHUCHIENPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC,NHAKHOAHOC_ID ASC)
 go
 
 
 
-CREATE TABLE TIEUCHIPHANBIEN
-( 
+CREATE TABLE THUCHIENPHANBIEN_TIEUCHIPHANBIEN
+(
+	MOTA                 varchar(20)  NOT NULL ,
 	DIEM                 integer  NOT NULL ,
-	MOTA                 varchar(40)  NULL ,
-	TENTIEUCHI           nvarchar(100)  NOT NULL 
+	BAIPHANBIEN_ID       nvarchar(100)  NOT NULL ,
+	ID_BAIBAO            nvarchar(100)  NOT NULL ,
+	NHAKHOAHOC_ID        nvarchar(100)  NOT NULL
 )
 go
 
 
 
-ALTER TABLE TIEUCHIPHANBIEN
-	ADD CONSTRAINT XPKTIEUCHIPHANBIEN PRIMARY KEY  CLUSTERED (TENTIEUCHI ASC)
+ALTER TABLE THUCHIENPHANBIEN_TIEUCHIPHANBIEN
+	ADD CONSTRAINT XPKTHUCHIENPHANBIEN_TIEUCHIPHANBIEN PRIMARY KEY  CLUSTERED (BAIPHANBIEN_ID ASC,ID_BAIBAO ASC,NHAKHOAHOC_ID ASC,MOTA ASC)
 go
 
 
@@ -416,7 +412,7 @@ go
 
 
 ALTER TABLE TONGQUAN
-	ADD CONSTRAINT XPKBAO PRIMARY KEY  CLUSTERED (ID_BAIBAO ASC)
+	ADD CONSTRAINT XPKTONGQUAN PRIMARY KEY  CLUSTERED (ID_BAIBAO ASC)
 go
 
 
@@ -449,6 +445,15 @@ go
 
 
 
+ALTER TABLE BAIBAO
+	ADD CONSTRAINT R_1058 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES TACGIALIENLAC(NHAKHOAHOC_ID)
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+
+
+
 ALTER TABLE BAIBAODADUOCCHAPNHAN
 	ADD  FOREIGN KEY (ID_BAIBAO) REFERENCES BAIBAO(ID_BAIBAO)
 		ON DELETE CASCADE
@@ -466,24 +471,6 @@ go
 
 ALTER TABLE BAIPHANBIEN
 	ADD CONSTRAINT DUOCPHANBIEN FOREIGN KEY (ID_BAIBAO) REFERENCES BAIBAO(ID_BAIBAO)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
-ALTER TABLE BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-	ADD CONSTRAINT R_1022 FOREIGN KEY (BAIPHANBIEN_ID,ID_BAIBAO,NHAKHOAHOC_ID) REFERENCES THUCHIENPHANBIEN(BAIPHANBIEN_ID,ID_BAIBAO,NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
-ALTER TABLE BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-	ADD CONSTRAINT R_1024 FOREIGN KEY (TENTIEUCHI) REFERENCES TIEUCHIPHANBIEN(TENTIEUCHI)
 		ON DELETE NO ACTION
 		ON UPDATE NO ACTION
 go
@@ -509,52 +496,10 @@ go
 
 
 
-ALTER TABLE NGUOICOQUYENPHANBIEN
-	ADD CONSTRAINT R_1054 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOIPHANBIEN(NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
-ALTER TABLE NGUOICOQUYENPHANBIEN
-	ADD CONSTRAINT R_1055 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES BIENTAPVIEN(NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
-ALTER TABLE NGUOICOQUYENTACGIA
-	ADD CONSTRAINT R_1056 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOIPHANBIEN(NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
-ALTER TABLE NGUOICOQUYENTACGIA
-	ADD CONSTRAINT R_1057 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES TACGIA(NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
 ALTER TABLE NGUOIPHANBIEN
 	ADD  FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NHAKHOAHOC(NHAKHOAHOC_ID)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE
-go
-
-
-
-
-exec sp_bindrule 'Val_Rule_VAITRO', 'NHAKHOAHOC.VAITRO'
 go
 
 
@@ -587,15 +532,6 @@ go
 
 
 
-ALTER TABLE PHANCONGPHANBIEN
-	ADD CONSTRAINT R_1035 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOICOQUYENPHANBIEN(NHAKHOAHOC_ID)
-		ON DELETE NO ACTION
-		ON UPDATE NO ACTION
-go
-
-
-
-
 ALTER TABLE SANGTAC
 	ADD CONSTRAINT R_244 FOREIGN KEY (ID_BAIBAO) REFERENCES BAIBAO(ID_BAIBAO)
 		ON DELETE NO ACTION
@@ -606,7 +542,7 @@ go
 
 
 ALTER TABLE SANGTAC
-	ADD CONSTRAINT R_242 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOICOQUYENTACGIA(NHAKHOAHOC_ID)
+  ADD CONSTRAINT R_1063 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES TACGIA(NHAKHOAHOC_ID)
 		ON DELETE NO ACTION
 		ON UPDATE NO ACTION
 go
@@ -624,7 +560,7 @@ go
 
 
 ALTER TABLE TACGIALIENLAC
-	ADD  FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOICOQUYENTACGIA(NHAKHOAHOC_ID)
+	ADD  FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES TACGIA(NHAKHOAHOC_ID)
 		ON DELETE CASCADE
 		ON UPDATE CASCADE
 go
@@ -642,7 +578,28 @@ go
 
 
 ALTER TABLE THUCHIENPHANBIEN
-	ADD CONSTRAINT R_1002 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOICOQUYENPHANBIEN(NHAKHOAHOC_ID)
+	ADD CONSTRAINT R_1065 FOREIGN KEY (NHAKHOAHOC_ID) REFERENCES NGUOIPHANBIEN(NHAKHOAHOC_ID)
+		ON DELETE NO ACTION
+		ON UPDATE NO ACTION
+go
+
+
+
+
+exec sp_bindrule 'Val_Rule_TIEUCHI', 'THUCHIENPHANBIEN_TIEUCHIPHANBIEN.MOTA'
+go
+
+
+
+
+exec sp_bindrule 'Val_Rule_DIEMTIEUCHI', 'THUCHIENPHANBIEN_TIEUCHIPHANBIEN.DIEM'
+go
+
+
+
+
+ALTER TABLE THUCHIENPHANBIEN_TIEUCHIPHANBIEN
+	ADD CONSTRAINT R_1064 FOREIGN KEY (BAIPHANBIEN_ID,ID_BAIBAO,NHAKHOAHOC_ID) REFERENCES THUCHIENPHANBIEN(BAIPHANBIEN_ID,ID_BAIBAO,NHAKHOAHOC_ID)
 		ON DELETE NO ACTION
 		ON UPDATE NO ACTION
 go
@@ -776,11 +733,34 @@ BEGIN
       GOTO ERROR
     END
 
+   /* ERwin Builtin Trigger */
+    /* TACGIALIENLAC  BAIBAO on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIALIENLAC"
+    CHILD_OWNER="", CHILD_TABLE="BAIBAO"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1058", FK_COLUMNS="NHAKHOAHOC_ID" */
+    IF EXISTS (SELECT * FROM deleted,TACGIALIENLAC
+      WHERE
+        /* %JoinFKPK(deleted,TACGIALIENLAC," = "," AND") */
+        deleted.NHAKHOAHOC_ID = TACGIALIENLAC.NHAKHOAHOC_ID AND
+        NOT EXISTS (
+          SELECT * FROM BAIBAO
+          WHERE
+            /* %JoinFKPK(BAIBAO,TACGIALIENLAC," = "," AND") */
+            BAIBAO.NHAKHOAHOC_ID = TACGIALIENLAC.NHAKHOAHOC_ID
+        )
+    )
+    BEGIN
+      SELECT @errno  = 30010,
+             @errmsg = 'Cannot delete last BAIBAO because TACGIALIENLAC exists.'
+      GOTO ERROR
+    END
+
 
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -992,11 +972,38 @@ BEGIN
     END
   END
 
+  /* ERwin Builtin Trigger */
+  /* TACGIALIENLAC  BAIBAO on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIALIENLAC"
+    CHILD_OWNER="", CHILD_TABLE="BAIBAO"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1058", FK_COLUMNS="NHAKHOAHOC_ID" */
+  IF
+    /* %ChildFK(" OR",UPDATE) */
+    UPDATE(NHAKHOAHOC_ID)
+  BEGIN
+    SELECT @nullcnt = 0
+    SELECT @validcnt = count(*)
+      FROM inserted,TACGIALIENLAC
+        WHERE
+          /* %JoinFKPK(inserted,TACGIALIENLAC) */
+          inserted.NHAKHOAHOC_ID = TACGIALIENLAC.NHAKHOAHOC_ID
+    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
+    select @nullcnt = count(*) from inserted where
+      inserted.NHAKHOAHOC_ID IS NULL
+    IF @validcnt + @nullcnt != @NUMROWS
+    BEGIN
+      SELECT @errno  = 30007,
+             @errmsg = 'Cannot update BAIBAO because TACGIALIENLAC does not exist.'
+      GOTO ERROR
+    END
+  END
+
 
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1038,7 +1045,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1088,7 +1095,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1168,7 +1175,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1268,158 +1275,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-
-
-CREATE TRIGGER tD_BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN ON BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN FOR DELETE AS
-/* ERwin Builtin Trigger */
-/* DELETE trigger on BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN */
-BEGIN
-  DECLARE  @errno   int,
-           @errmsg  varchar(255)
-    /* ERwin Builtin Trigger */
-    /* THUCHIENPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="0004044e", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1022", FK_COLUMNS="NHAKHOAHOC_ID""BAIPHANBIEN_ID""ID_BAIBAO" */
-    IF EXISTS (SELECT * FROM deleted,THUCHIENPHANBIEN
-      WHERE
-        /* %JoinFKPK(deleted,THUCHIENPHANBIEN," = "," AND") */
-        deleted.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID AND
-        deleted.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO AND
-        deleted.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-          WHERE
-            /* %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,THUCHIENPHANBIEN," = "," AND") */
-            BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID AND
-            BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO AND
-            BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN because THUCHIENPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* TIEUCHIPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TIEUCHIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1024", FK_COLUMNS="TENTIEUCHI" */
-    IF EXISTS (SELECT * FROM deleted,TIEUCHIPHANBIEN
-      WHERE
-        /* %JoinFKPK(deleted,TIEUCHIPHANBIEN," = "," AND") */
-        deleted.TENTIEUCHI = TIEUCHIPHANBIEN.TENTIEUCHI AND
-        NOT EXISTS (
-          SELECT * FROM BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-          WHERE
-            /* %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,TIEUCHIPHANBIEN," = "," AND") */
-            BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.TENTIEUCHI = TIEUCHIPHANBIEN.TENTIEUCHI
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN because TIEUCHIPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-
-    /* ERwin Builtin Trigger */
-    RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-CREATE TRIGGER tU_BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN ON BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN FOR UPDATE AS
-/* ERwin Builtin Trigger */
-/* UPDATE trigger on BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN */
-BEGIN
-  DECLARE  @NUMROWS int,
-           @nullcnt int,
-           @validcnt int,
-           @insBAIPHANBIEN_ID nvarchar(100), 
-           @insID_BAIBAO nvarchar(100), 
-           @insTENTIEUCHI nvarchar(100), 
-           @insNHAKHOAHOC_ID nvarchar(100),
-           @errno   int,
-           @errmsg  varchar(255)
-
-  SELECT @NUMROWS = @@rowcount
-  /* ERwin Builtin Trigger */
-  /* THUCHIENPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="000396a0", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1022", FK_COLUMNS="NHAKHOAHOC_ID""BAIPHANBIEN_ID""ID_BAIBAO" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(BAIPHANBIEN_ID) OR
-    UPDATE(ID_BAIBAO) OR
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,THUCHIENPHANBIEN
-        WHERE
-          /* %JoinFKPK(inserted,THUCHIENPHANBIEN) */
-          inserted.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID and
-          inserted.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO and
-          inserted.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN because THUCHIENPHANBIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* TIEUCHIPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TIEUCHIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1024", FK_COLUMNS="TENTIEUCHI" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(TENTIEUCHI)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,TIEUCHIPHANBIEN
-        WHERE
-          /* %JoinFKPK(inserted,TIEUCHIPHANBIEN) */
-          inserted.TENTIEUCHI = TIEUCHIPHANBIEN.TENTIEUCHI
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN because TIEUCHIPHANBIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
-
-  /* ERwin Builtin Trigger */
-  RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1434,24 +1290,6 @@ CREATE TRIGGER tD_BIENTAPVIEN ON BIENTAPVIEN FOR DELETE AS
 BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
-    /* ERwin Builtin Trigger */
-    /* BIENTAPVIEN  NGUOICOQUYENPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00025b72", PARENT_OWNER="", PARENT_TABLE="BIENTAPVIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1055", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
-      WHERE
-        /*  %JoinFKPK(NGUOICOQUYENPHANBIEN,deleted," = "," AND") */
-        NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete BIENTAPVIEN because NGUOICOQUYENPHANBIEN exists.'
-      GOTO ERROR
-    END
-
     /* ERwin Builtin Trigger */
     /* NHAKHOAHOC  BIENTAPVIEN on child delete no action */
     /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NHAKHOAHOC"
@@ -1479,7 +1317,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1498,29 +1336,6 @@ BEGIN
            @errmsg  varchar(255)
 
   SELECT @NUMROWS = @@rowcount
-  /* ERwin Builtin Trigger */
-  /* BIENTAPVIEN  NGUOICOQUYENPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="000288a1", PARENT_OWNER="", PARENT_TABLE="BIENTAPVIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1055", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
-      WHERE
-        /*  %JoinFKPK(NGUOICOQUYENPHANBIEN,deleted," = "," AND") */
-        NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update BIENTAPVIEN because NGUOICOQUYENPHANBIEN exists.'
-      GOTO ERROR
-    END
-  END
-
   /* ERwin Builtin Trigger */
   /* NHAKHOAHOC  BIENTAPVIEN on child update no action */
   /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NHAKHOAHOC"
@@ -1551,7 +1366,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1593,7 +1408,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -1642,453 +1457,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-
-
-CREATE TRIGGER tD_NGUOICOQUYENPHANBIEN ON NGUOICOQUYENPHANBIEN FOR DELETE AS
-/* ERwin Builtin Trigger */
-/* DELETE trigger on NGUOICOQUYENPHANBIEN */
-BEGIN
-  DECLARE  @errno   int,
-           @errmsg  varchar(255)
-    /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENPHANBIEN  THUCHIENPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="0004fcca", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1002", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,THUCHIENPHANBIEN
-      WHERE
-        /*  %JoinFKPK(THUCHIENPHANBIEN,deleted," = "," AND") */
-        THUCHIENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete NGUOICOQUYENPHANBIEN because THUCHIENPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENPHANBIEN  PHANCONGPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="PHANCONGPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1035", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,PHANCONGPHANBIEN
-      WHERE
-        /*  %JoinFKPK(PHANCONGPHANBIEN,deleted," = "," AND") */
-        PHANCONGPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete NGUOICOQUYENPHANBIEN because PHANCONGPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* NGUOIPHANBIEN  NGUOICOQUYENPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1054", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOIPHANBIEN
-      WHERE
-        /* %JoinFKPK(deleted,NGUOIPHANBIEN," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM NGUOICOQUYENPHANBIEN
-          WHERE
-            /* %JoinFKPK(NGUOICOQUYENPHANBIEN,NGUOIPHANBIEN," = "," AND") */
-            NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last NGUOICOQUYENPHANBIEN because NGUOIPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* BIENTAPVIEN  NGUOICOQUYENPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="BIENTAPVIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1055", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,BIENTAPVIEN
-      WHERE
-        /* %JoinFKPK(deleted,BIENTAPVIEN," = "," AND") */
-        deleted.NHAKHOAHOC_ID = BIENTAPVIEN.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM NGUOICOQUYENPHANBIEN
-          WHERE
-            /* %JoinFKPK(NGUOICOQUYENPHANBIEN,BIENTAPVIEN," = "," AND") */
-            NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = BIENTAPVIEN.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last NGUOICOQUYENPHANBIEN because BIENTAPVIEN exists.'
-      GOTO ERROR
-    END
-
-
-    /* ERwin Builtin Trigger */
-    RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-CREATE TRIGGER tU_NGUOICOQUYENPHANBIEN ON NGUOICOQUYENPHANBIEN FOR UPDATE AS
-/* ERwin Builtin Trigger */
-/* UPDATE trigger on NGUOICOQUYENPHANBIEN */
-BEGIN
-  DECLARE  @NUMROWS int,
-           @nullcnt int,
-           @validcnt int,
-           @insNHAKHOAHOC_ID nvarchar(100),
-           @errno   int,
-           @errmsg  varchar(255)
-
-  SELECT @NUMROWS = @@rowcount
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENPHANBIEN  THUCHIENPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="00054110", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1002", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,THUCHIENPHANBIEN
-      WHERE
-        /*  %JoinFKPK(THUCHIENPHANBIEN,deleted," = "," AND") */
-        THUCHIENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update NGUOICOQUYENPHANBIEN because THUCHIENPHANBIEN exists.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENPHANBIEN  PHANCONGPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="PHANCONGPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1035", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,PHANCONGPHANBIEN
-      WHERE
-        /*  %JoinFKPK(PHANCONGPHANBIEN,deleted," = "," AND") */
-        PHANCONGPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update NGUOICOQUYENPHANBIEN because PHANCONGPHANBIEN exists.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* NGUOIPHANBIEN  NGUOICOQUYENPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1054", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,NGUOIPHANBIEN
-        WHERE
-          /* %JoinFKPK(inserted,NGUOIPHANBIEN) */
-          inserted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update NGUOICOQUYENPHANBIEN because NGUOIPHANBIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* BIENTAPVIEN  NGUOICOQUYENPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="BIENTAPVIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1055", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,BIENTAPVIEN
-        WHERE
-          /* %JoinFKPK(inserted,BIENTAPVIEN) */
-          inserted.NHAKHOAHOC_ID = BIENTAPVIEN.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update NGUOICOQUYENPHANBIEN because BIENTAPVIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
-
-  /* ERwin Builtin Trigger */
-  RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-
-
-CREATE TRIGGER tD_NGUOICOQUYENTACGIA ON NGUOICOQUYENTACGIA FOR DELETE AS
-/* ERwin Builtin Trigger */
-/* DELETE trigger on NGUOICOQUYENTACGIA */
-BEGIN
-  DECLARE  @errno   int,
-           @errmsg  varchar(255)
-    /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENTACGIA  TACGIALIENLAC on parent delete cascade */
-    /* ERWIN_RELATION:CHECKSUM="000464aa", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
-    DELETE TACGIALIENLAC
-      FROM TACGIALIENLAC,deleted
-      WHERE
-        /*  %JoinFKPK(TACGIALIENLAC,deleted," = "," AND") */
-        TACGIALIENLAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-
-    /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENTACGIA  SANGTAC on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_242", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,SANGTAC
-      WHERE
-        /*  %JoinFKPK(SANGTAC,deleted," = "," AND") */
-        SANGTAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete NGUOICOQUYENTACGIA because SANGTAC exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* NGUOIPHANBIEN  NGUOICOQUYENTACGIA on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1056", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOIPHANBIEN
-      WHERE
-        /* %JoinFKPK(deleted,NGUOIPHANBIEN," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM NGUOICOQUYENTACGIA
-          WHERE
-            /* %JoinFKPK(NGUOICOQUYENTACGIA,NGUOIPHANBIEN," = "," AND") */
-            NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last NGUOICOQUYENTACGIA because NGUOIPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* TACGIA  NGUOICOQUYENTACGIA on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1057", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,TACGIA
-      WHERE
-        /* %JoinFKPK(deleted,TACGIA," = "," AND") */
-        deleted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM NGUOICOQUYENTACGIA
-          WHERE
-            /* %JoinFKPK(NGUOICOQUYENTACGIA,TACGIA," = "," AND") */
-            NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last NGUOICOQUYENTACGIA because TACGIA exists.'
-      GOTO ERROR
-    END
-
-
-    /* ERwin Builtin Trigger */
-    RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
-    rollback transaction
-END
-
-go
-
-
-CREATE TRIGGER tU_NGUOICOQUYENTACGIA ON NGUOICOQUYENTACGIA FOR UPDATE AS
-/* ERwin Builtin Trigger */
-/* UPDATE trigger on NGUOICOQUYENTACGIA */
-BEGIN
-  DECLARE  @NUMROWS int,
-           @nullcnt int,
-           @validcnt int,
-           @insNHAKHOAHOC_ID nvarchar(100),
-           @errno   int,
-           @errmsg  varchar(255)
-
-  SELECT @NUMROWS = @@rowcount
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENTACGIA  TACGIALIENLAC on parent update cascade */
-  /* ERWIN_RELATION:CHECKSUM="00057bf2", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF @NUMROWS = 1
-    BEGIN
-      SELECT @insNHAKHOAHOC_ID = inserted.NHAKHOAHOC_ID
-        FROM inserted
-      UPDATE TACGIALIENLAC
-      SET
-        /*  %JoinFKPK(TACGIALIENLAC,@ins," = ",",") */
-        TACGIALIENLAC.NHAKHOAHOC_ID = @insNHAKHOAHOC_ID
-      FROM TACGIALIENLAC,inserted,deleted
-      WHERE
-        /*  %JoinFKPK(TACGIALIENLAC,deleted," = "," AND") */
-        TACGIALIENLAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    END
-    ELSE
-    BEGIN
-      SELECT @errno = 30006,
-             @errmsg = 'Cannot cascade NGUOICOQUYENTACGIA update because more than one row has been affected.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENTACGIA  SANGTAC on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_242", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,SANGTAC
-      WHERE
-        /*  %JoinFKPK(SANGTAC,deleted," = "," AND") */
-        SANGTAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update NGUOICOQUYENTACGIA because SANGTAC exists.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* NGUOIPHANBIEN  NGUOICOQUYENTACGIA on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1056", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,NGUOIPHANBIEN
-        WHERE
-          /* %JoinFKPK(inserted,NGUOIPHANBIEN) */
-          inserted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update NGUOICOQUYENTACGIA because NGUOIPHANBIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* TACGIA  NGUOICOQUYENTACGIA on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1057", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,TACGIA
-        WHERE
-          /* %JoinFKPK(inserted,TACGIA) */
-          inserted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update NGUOICOQUYENTACGIA because TACGIA does not exist.'
-      GOTO ERROR
-    END
-  END
-
-
-  /* ERwin Builtin Trigger */
-  RETURN
-ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2104,38 +1473,20 @@ BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* NGUOIPHANBIEN  NGUOICOQUYENPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00036f30", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
+    /* NGUOIPHANBIEN  THUCHIENPHANBIEN on parent delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00011316", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1054", FK_COLUMNS="NHAKHOAHOC_ID" */
+    FK_CONSTRAINT="R_1062", FK_COLUMNS="NHAKHOAHOC_ID" */
     IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
+      SELECT * FROM deleted,THUCHIENPHANBIEN
       WHERE
-        /*  %JoinFKPK(NGUOICOQUYENPHANBIEN,deleted," = "," AND") */
-        NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(THUCHIENPHANBIEN,deleted," = "," AND") */
+        THUCHIENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete NGUOIPHANBIEN because NGUOICOQUYENPHANBIEN exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
-    /* NGUOIPHANBIEN  NGUOICOQUYENTACGIA on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1056", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENTACGIA
-      WHERE
-        /*  %JoinFKPK(NGUOICOQUYENTACGIA,deleted," = "," AND") */
-        NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete NGUOIPHANBIEN because NGUOICOQUYENTACGIA exists.'
+             @errmsg = 'Cannot delete NGUOIPHANBIEN because THUCHIENPHANBIEN exists.'
       GOTO ERROR
     END
 
@@ -2166,7 +1517,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2186,47 +1537,24 @@ BEGIN
 
   SELECT @NUMROWS = @@rowcount
   /* ERwin Builtin Trigger */
-  /* NGUOIPHANBIEN  NGUOICOQUYENPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="0003c948", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENPHANBIEN"
+  /* NGUOIPHANBIEN  THUCHIENPHANBIEN on parent update no action */
+  /* ERWIN_RELATION:CHECKSUM="00013b76", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1054", FK_COLUMNS="NHAKHOAHOC_ID" */
+    FK_CONSTRAINT="R_1062", FK_COLUMNS="NHAKHOAHOC_ID" */
   IF
     /* %ParentPK(" OR",UPDATE) */
     UPDATE(NHAKHOAHOC_ID)
   BEGIN
     IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
+      SELECT * FROM deleted,THUCHIENPHANBIEN
       WHERE
-        /*  %JoinFKPK(NGUOICOQUYENPHANBIEN,deleted," = "," AND") */
-        NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(THUCHIENPHANBIEN,deleted," = "," AND") */
+        THUCHIENPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30005,
-             @errmsg = 'Cannot update NGUOIPHANBIEN because NGUOICOQUYENPHANBIEN exists.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
-  /* NGUOIPHANBIEN  NGUOICOQUYENTACGIA on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1056", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENTACGIA
-      WHERE
-        /*  %JoinFKPK(NGUOICOQUYENTACGIA,deleted," = "," AND") */
-        NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
-    )
-    BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update NGUOIPHANBIEN because NGUOICOQUYENTACGIA exists.'
+             @errmsg = 'Cannot update NGUOIPHANBIEN because THUCHIENPHANBIEN exists.'
       GOTO ERROR
     END
   END
@@ -2261,7 +1589,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2316,7 +1644,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2432,7 +1760,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2493,7 +1821,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2568,7 +1896,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2612,7 +1940,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2665,7 +1993,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2705,34 +2033,11 @@ BEGIN
       GOTO ERROR
     END
 
-    /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENPHANBIEN  PHANCONGPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="PHANCONGPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1035", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
-      WHERE
-        /* %JoinFKPK(deleted,NGUOICOQUYENPHANBIEN," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM PHANCONGPHANBIEN
-          WHERE
-            /* %JoinFKPK(PHANCONGPHANBIEN,NGUOICOQUYENPHANBIEN," = "," AND") */
-            PHANCONGPHANBIEN.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last PHANCONGPHANBIEN because NGUOICOQUYENPHANBIEN exists.'
-      GOTO ERROR
-    END
-
 
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2747,8 +2052,7 @@ BEGIN
            @nullcnt int,
            @validcnt int,
            @insBAIPHANBIEN_ID nvarchar(100), 
-           @insID_BAIBAO nvarchar(100), 
-           @insNHAKHOAHOC_ID nvarchar(100),
+           @insID_BAIBAO nvarchar(100),
            @errno   int,
            @errmsg  varchar(255)
 
@@ -2781,37 +2085,11 @@ BEGIN
     END
   END
 
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENPHANBIEN  PHANCONGPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="PHANCONGPHANBIEN"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1035", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,NGUOICOQUYENPHANBIEN
-        WHERE
-          /* %JoinFKPK(inserted,NGUOICOQUYENPHANBIEN) */
-          inserted.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update PHANCONGPHANBIEN because NGUOICOQUYENPHANBIEN does not exist.'
-      GOTO ERROR
-    END
-  END
-
 
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2827,31 +2105,8 @@ BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENTACGIA  SANGTAC on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00026582", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_242", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOICOQUYENTACGIA
-      WHERE
-        /* %JoinFKPK(deleted,NGUOICOQUYENTACGIA," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID AND
-        NOT EXISTS (
-          SELECT * FROM SANGTAC
-          WHERE
-            /* %JoinFKPK(SANGTAC,NGUOICOQUYENTACGIA," = "," AND") */
-            SANGTAC.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID
-        )
-    )
-    BEGIN
-      SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last SANGTAC because NGUOICOQUYENTACGIA exists.'
-      GOTO ERROR
-    END
-
-    /* ERwin Builtin Trigger */
     /* BAIBAO  SANGTAC on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="BAIBAO"
+    /* ERWIN_RELATION:CHECKSUM="000256b0", PARENT_OWNER="", PARENT_TABLE="BAIBAO"
     CHILD_OWNER="", CHILD_TABLE="SANGTAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
     FK_CONSTRAINT="R_244", FK_COLUMNS="ID_BAIBAO" */
@@ -2872,11 +2127,34 @@ BEGIN
       GOTO ERROR
     END
 
+    /* ERwin Builtin Trigger */
+    /* TACGIA  SANGTAC on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1063", FK_COLUMNS="NHAKHOAHOC_ID" */
+    IF EXISTS (SELECT * FROM deleted,TACGIA
+      WHERE
+        /* %JoinFKPK(deleted,TACGIA," = "," AND") */
+        deleted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID AND
+        NOT EXISTS (
+          SELECT * FROM SANGTAC
+          WHERE
+            /* %JoinFKPK(SANGTAC,TACGIA," = "," AND") */
+            SANGTAC.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
+        )
+    )
+    BEGIN
+      SELECT @errno  = 30010,
+             @errmsg = 'Cannot delete last SANGTAC because TACGIA exists.'
+      GOTO ERROR
+    END
+
 
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2896,35 +2174,9 @@ BEGIN
            @errmsg  varchar(255)
 
   SELECT @NUMROWS = @@rowcount
-  /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENTACGIA  SANGTAC on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="0002b87b", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
-    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
-    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_242", FK_COLUMNS="NHAKHOAHOC_ID" */
-  IF
-    /* %ChildFK(" OR",UPDATE) */
-    UPDATE(NHAKHOAHOC_ID)
-  BEGIN
-    SELECT @nullcnt = 0
-    SELECT @validcnt = count(*)
-      FROM inserted,NGUOICOQUYENTACGIA
-        WHERE
-          /* %JoinFKPK(inserted,NGUOICOQUYENTACGIA) */
-          inserted.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID
-    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
-    
-    IF @validcnt + @nullcnt != @NUMROWS
-    BEGIN
-      SELECT @errno  = 30007,
-             @errmsg = 'Cannot update SANGTAC because NGUOICOQUYENTACGIA does not exist.'
-      GOTO ERROR
-    END
-  END
-
-  /* ERwin Builtin Trigger */
+    /* ERwin Builtin Trigger */
   /* BAIBAO  SANGTAC on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="BAIBAO"
+  /* ERWIN_RELATION:CHECKSUM="0002976f", PARENT_OWNER="", PARENT_TABLE="BAIBAO"
     CHILD_OWNER="", CHILD_TABLE="SANGTAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
     FK_CONSTRAINT="R_244", FK_COLUMNS="ID_BAIBAO" */
@@ -2948,11 +2200,37 @@ BEGIN
     END
   END
 
+  /* ERwin Builtin Trigger */
+  /* TACGIA  SANGTAC on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1063", FK_COLUMNS="NHAKHOAHOC_ID" */
+  IF
+    /* %ChildFK(" OR",UPDATE) */
+    UPDATE(NHAKHOAHOC_ID)
+  BEGIN
+    SELECT @nullcnt = 0
+    SELECT @validcnt = count(*)
+      FROM inserted,TACGIA
+        WHERE
+          /* %JoinFKPK(inserted,TACGIA) */
+          inserted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
+    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
+    
+    IF @validcnt + @nullcnt != @NUMROWS
+    BEGIN
+      SELECT @errno  = 30007,
+             @errmsg = 'Cannot update SANGTAC because TACGIA does not exist.'
+      GOTO ERROR
+    END
+  END
+
 
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -2968,20 +2246,32 @@ BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* TACGIA  NGUOICOQUYENTACGIA on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00023f7c", PARENT_OWNER="", PARENT_TABLE="TACGIA"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
+    /* TACGIA  TACGIALIENLAC on parent delete cascade */
+    /* ERWIN_RELATION:CHECKSUM="0002e56a", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1057", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENTACGIA
+    FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
+    DELETE TACGIALIENLAC
+      FROM TACGIALIENLAC,deleted
       WHERE
-        /*  %JoinFKPK(NGUOICOQUYENTACGIA,deleted," = "," AND") */
-        NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(TACGIALIENLAC,deleted," = "," AND") */
+        TACGIALIENLAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+
+    /* ERwin Builtin Trigger */
+    /* TACGIA  SANGTAC on parent delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1063", FK_COLUMNS="NHAKHOAHOC_ID" */
+    IF EXISTS (
+      SELECT * FROM deleted,SANGTAC
+      WHERE
+        /*  %JoinFKPK(SANGTAC,deleted," = "," AND") */
+        SANGTAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete TACGIA because NGUOICOQUYENTACGIA exists.'
+             @errmsg = 'Cannot delete TACGIA because SANGTAC exists.'
       GOTO ERROR
     END
 
@@ -3012,7 +2302,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3032,24 +2322,55 @@ BEGIN
 
   SELECT @NUMROWS = @@rowcount
   /* ERwin Builtin Trigger */
-  /* TACGIA  NGUOICOQUYENTACGIA on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="00028579", PARENT_OWNER="", PARENT_TABLE="TACGIA"
-    CHILD_OWNER="", CHILD_TABLE="NGUOICOQUYENTACGIA"
+  /* TACGIA  TACGIALIENLAC on parent update cascade */
+  /* ERWIN_RELATION:CHECKSUM="0003c816", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1057", FK_COLUMNS="NHAKHOAHOC_ID" */
+    FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
+  IF
+    /* %ParentPK(" OR",UPDATE) */
+    UPDATE(NHAKHOAHOC_ID)
+  BEGIN
+    IF @NUMROWS = 1
+    BEGIN
+      SELECT @insNHAKHOAHOC_ID = inserted.NHAKHOAHOC_ID
+        FROM inserted
+      UPDATE TACGIALIENLAC
+      SET
+        /*  %JoinFKPK(TACGIALIENLAC,@ins," = ",",") */
+        TACGIALIENLAC.NHAKHOAHOC_ID = @insNHAKHOAHOC_ID
+      FROM TACGIALIENLAC,inserted,deleted
+      WHERE
+        /*  %JoinFKPK(TACGIALIENLAC,deleted," = "," AND") */
+        TACGIALIENLAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+    END
+    ELSE
+    BEGIN
+      SELECT @errno = 30006,
+             @errmsg = 'Cannot cascade TACGIA update because more than one row has been affected.'
+      GOTO ERROR
+    END
+  END
+
+  /* ERwin Builtin Trigger */
+  /* TACGIA  SANGTAC on parent update no action */
+  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
+    CHILD_OWNER="", CHILD_TABLE="SANGTAC"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1063", FK_COLUMNS="NHAKHOAHOC_ID" */
   IF
     /* %ParentPK(" OR",UPDATE) */
     UPDATE(NHAKHOAHOC_ID)
   BEGIN
     IF EXISTS (
-      SELECT * FROM deleted,NGUOICOQUYENTACGIA
+      SELECT * FROM deleted,SANGTAC
       WHERE
-        /*  %JoinFKPK(NGUOICOQUYENTACGIA,deleted," = "," AND") */
-        NGUOICOQUYENTACGIA.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(SANGTAC,deleted," = "," AND") */
+        SANGTAC.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30005,
-             @errmsg = 'Cannot update TACGIA because NGUOICOQUYENTACGIA exists.'
+             @errmsg = 'Cannot update TACGIA because SANGTAC exists.'
       GOTO ERROR
     END
   END
@@ -3084,7 +2405,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3100,25 +2421,43 @@ BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENTACGIA  TACGIALIENLAC on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="000169f9", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
+    /* TACGIALIENLAC  BAIBAO on parent delete no action */
+    /* ERWIN_RELATION:CHECKSUM="0002286f", PARENT_OWNER="", PARENT_TABLE="TACGIALIENLAC"
+    CHILD_OWNER="", CHILD_TABLE="BAIBAO"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1058", FK_COLUMNS="NHAKHOAHOC_ID" */
+    IF EXISTS (
+      SELECT * FROM deleted,BAIBAO
+      WHERE
+        /*  %JoinFKPK(BAIBAO,deleted," = "," AND") */
+        BAIBAO.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+    )
+    BEGIN
+      SELECT @errno  = 30001,
+             @errmsg = 'Cannot delete TACGIALIENLAC because BAIBAO exists.'
+      GOTO ERROR
+    END
+
+    /* ERwin Builtin Trigger */
+    /* TACGIA  TACGIALIENLAC on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
     CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
     FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOICOQUYENTACGIA
+    IF EXISTS (SELECT * FROM deleted,TACGIA
       WHERE
-        /* %JoinFKPK(deleted,NGUOICOQUYENTACGIA," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID AND
+        /* %JoinFKPK(deleted,TACGIA," = "," AND") */
+        deleted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID AND
         NOT EXISTS (
           SELECT * FROM TACGIALIENLAC
           WHERE
-            /* %JoinFKPK(TACGIALIENLAC,NGUOICOQUYENTACGIA," = "," AND") */
-            TACGIALIENLAC.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID
+            /* %JoinFKPK(TACGIALIENLAC,TACGIA," = "," AND") */
+            TACGIALIENLAC.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
         )
     )
     BEGIN
       SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last TACGIALIENLAC because NGUOICOQUYENTACGIA exists.'
+             @errmsg = 'Cannot delete last TACGIALIENLAC because TACGIA exists.'
       GOTO ERROR
     END
 
@@ -3126,7 +2465,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3146,8 +2485,31 @@ BEGIN
 
   SELECT @NUMROWS = @@rowcount
   /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENTACGIA  TACGIALIENLAC on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00017a0f", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENTACGIA"
+  /* TACGIALIENLAC  BAIBAO on parent update no action */
+  /* ERWIN_RELATION:CHECKSUM="00025e04", PARENT_OWNER="", PARENT_TABLE="TACGIALIENLAC"
+    CHILD_OWNER="", CHILD_TABLE="BAIBAO"
+    P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
+    FK_CONSTRAINT="R_1058", FK_COLUMNS="NHAKHOAHOC_ID" */
+  IF
+    /* %ParentPK(" OR",UPDATE) */
+    UPDATE(NHAKHOAHOC_ID)
+  BEGIN
+    IF EXISTS (
+      SELECT * FROM deleted,BAIBAO
+      WHERE
+        /*  %JoinFKPK(BAIBAO,deleted," = "," AND") */
+        BAIBAO.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+    )
+    BEGIN
+      SELECT @errno  = 30005,
+             @errmsg = 'Cannot update TACGIALIENLAC because BAIBAO exists.'
+      GOTO ERROR
+    END
+  END
+
+  /* ERwin Builtin Trigger */
+  /* TACGIA  TACGIALIENLAC on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="TACGIA"
     CHILD_OWNER="", CHILD_TABLE="TACGIALIENLAC"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
     FK_CONSTRAINT="is_a", FK_COLUMNS="NHAKHOAHOC_ID" */
@@ -3157,16 +2519,16 @@ BEGIN
   BEGIN
     SELECT @nullcnt = 0
     SELECT @validcnt = count(*)
-      FROM inserted,NGUOICOQUYENTACGIA
+      FROM inserted,TACGIA
         WHERE
-          /* %JoinFKPK(inserted,NGUOICOQUYENTACGIA) */
-          inserted.NHAKHOAHOC_ID = NGUOICOQUYENTACGIA.NHAKHOAHOC_ID
+          /* %JoinFKPK(inserted,TACGIA) */
+          inserted.NHAKHOAHOC_ID = TACGIA.NHAKHOAHOC_ID
     /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
     
     IF @validcnt + @nullcnt != @NUMROWS
     BEGIN
       SELECT @errno  = 30007,
-             @errmsg = 'Cannot update TACGIALIENLAC because NGUOICOQUYENTACGIA does not exist.'
+             @errmsg = 'Cannot update TACGIALIENLAC because TACGIA does not exist.'
       GOTO ERROR
     END
   END
@@ -3175,7 +2537,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3191,22 +2553,22 @@ BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* THUCHIENPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="0004b633", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
+    /* THUCHIENPHANBIEN  THUCHIENPHANBIEN_TIEUCHIPHANBIEN on parent delete no action */
+    /* ERWIN_RELATION:CHECKSUM="0004817c", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN_TIEUCHIPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1022", FK_COLUMNS="NHAKHOAHOC_ID""BAIPHANBIEN_ID""ID_BAIBAO" */
+    FK_CONSTRAINT="R_1059", FK_COLUMNS="BAIPHANBIEN_ID""ID_BAIBAO""NHAKHOAHOC_ID" */
     IF EXISTS (
-      SELECT * FROM deleted,BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
+      SELECT * FROM deleted,THUCHIENPHANBIEN_TIEUCHIPHANBIEN
       WHERE
-        /*  %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = deleted.BAIPHANBIEN_ID AND
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = deleted.ID_BAIBAO AND
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(THUCHIENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = deleted.BAIPHANBIEN_ID AND
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = deleted.ID_BAIBAO AND
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete THUCHIENPHANBIEN because BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN exists.'
+             @errmsg = 'Cannot delete THUCHIENPHANBIEN because THUCHIENPHANBIEN_TIEUCHIPHANBIEN exists.'
       GOTO ERROR
     END
 
@@ -3236,25 +2598,25 @@ BEGIN
     END
 
     /* ERwin Builtin Trigger */
-    /* NGUOICOQUYENPHANBIEN  THUCHIENPHANBIEN on child delete no action */
-    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
+    /* NGUOIPHANBIEN  THUCHIENPHANBIEN on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
     CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1002", FK_COLUMNS="NHAKHOAHOC_ID" */
-    IF EXISTS (SELECT * FROM deleted,NGUOICOQUYENPHANBIEN
+    FK_CONSTRAINT="R_1062", FK_COLUMNS="NHAKHOAHOC_ID" */
+    IF EXISTS (SELECT * FROM deleted,NGUOIPHANBIEN
       WHERE
-        /* %JoinFKPK(deleted,NGUOICOQUYENPHANBIEN," = "," AND") */
-        deleted.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID AND
+        /* %JoinFKPK(deleted,NGUOIPHANBIEN," = "," AND") */
+        deleted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID AND
         NOT EXISTS (
           SELECT * FROM THUCHIENPHANBIEN
           WHERE
-            /* %JoinFKPK(THUCHIENPHANBIEN,NGUOICOQUYENPHANBIEN," = "," AND") */
-            THUCHIENPHANBIEN.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID
+            /* %JoinFKPK(THUCHIENPHANBIEN,NGUOIPHANBIEN," = "," AND") */
+            THUCHIENPHANBIEN.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
         )
     )
     BEGIN
       SELECT @errno  = 30010,
-             @errmsg = 'Cannot delete last THUCHIENPHANBIEN because NGUOICOQUYENPHANBIEN exists.'
+             @errmsg = 'Cannot delete last THUCHIENPHANBIEN because NGUOIPHANBIEN exists.'
       GOTO ERROR
     END
 
@@ -3262,7 +2624,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3284,11 +2646,11 @@ BEGIN
 
   SELECT @NUMROWS = @@rowcount
   /* ERwin Builtin Trigger */
-  /* THUCHIENPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="0004ee44", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
+  /* THUCHIENPHANBIEN  THUCHIENPHANBIEN_TIEUCHIPHANBIEN on parent update no action */
+  /* ERWIN_RELATION:CHECKSUM="00049773", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN_TIEUCHIPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1022", FK_COLUMNS="NHAKHOAHOC_ID""BAIPHANBIEN_ID""ID_BAIBAO" */
+    FK_CONSTRAINT="R_1059", FK_COLUMNS="BAIPHANBIEN_ID""ID_BAIBAO""NHAKHOAHOC_ID" */
   IF
     /* %ParentPK(" OR",UPDATE) */
     UPDATE(BAIPHANBIEN_ID) OR
@@ -3296,16 +2658,16 @@ BEGIN
     UPDATE(NHAKHOAHOC_ID)
   BEGIN
     IF EXISTS (
-      SELECT * FROM deleted,BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
+      SELECT * FROM deleted,THUCHIENPHANBIEN_TIEUCHIPHANBIEN
       WHERE
-        /*  %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = deleted.BAIPHANBIEN_ID AND
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = deleted.ID_BAIBAO AND
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
+        /*  %JoinFKPK(THUCHIENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = deleted.BAIPHANBIEN_ID AND
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = deleted.ID_BAIBAO AND
+        THUCHIENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = deleted.NHAKHOAHOC_ID
     )
     BEGIN
       SELECT @errno  = 30005,
-             @errmsg = 'Cannot update THUCHIENPHANBIEN because BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN exists.'
+             @errmsg = 'Cannot update THUCHIENPHANBIEN because THUCHIENPHANBIEN_TIEUCHIPHANBIEN exists.'
       GOTO ERROR
     END
   END
@@ -3339,27 +2701,27 @@ BEGIN
   END
 
   /* ERwin Builtin Trigger */
-  /* NGUOICOQUYENPHANBIEN  THUCHIENPHANBIEN on child update no action */
-  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOICOQUYENPHANBIEN"
+  /* NGUOIPHANBIEN  THUCHIENPHANBIEN on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="00000000", PARENT_OWNER="", PARENT_TABLE="NGUOIPHANBIEN"
     CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1002", FK_COLUMNS="NHAKHOAHOC_ID" */
+    FK_CONSTRAINT="R_1062", FK_COLUMNS="NHAKHOAHOC_ID" */
   IF
     /* %ChildFK(" OR",UPDATE) */
     UPDATE(NHAKHOAHOC_ID)
   BEGIN
     SELECT @nullcnt = 0
     SELECT @validcnt = count(*)
-      FROM inserted,NGUOICOQUYENPHANBIEN
+      FROM inserted,NGUOIPHANBIEN
         WHERE
-          /* %JoinFKPK(inserted,NGUOICOQUYENPHANBIEN) */
-          inserted.NHAKHOAHOC_ID = NGUOICOQUYENPHANBIEN.NHAKHOAHOC_ID
+          /* %JoinFKPK(inserted,NGUOIPHANBIEN) */
+          inserted.NHAKHOAHOC_ID = NGUOIPHANBIEN.NHAKHOAHOC_ID
     /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
     
     IF @validcnt + @nullcnt != @NUMROWS
     BEGIN
       SELECT @errno  = 30007,
-             @errmsg = 'Cannot update THUCHIENPHANBIEN because NGUOICOQUYENPHANBIEN does not exist.'
+             @errmsg = 'Cannot update THUCHIENPHANBIEN because NGUOIPHANBIEN does not exist.'
       GOTO ERROR
     END
   END
@@ -3368,7 +2730,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3377,27 +2739,36 @@ go
 
 
 
-CREATE TRIGGER tD_TIEUCHIPHANBIEN ON TIEUCHIPHANBIEN FOR DELETE AS
+CREATE TRIGGER tD_THUCHIENPHANBIEN_TIEUCHIPHANBIEN ON THUCHIENPHANBIEN_TIEUCHIPHANBIEN FOR DELETE AS
 /* ERwin Builtin Trigger */
-/* DELETE trigger on TIEUCHIPHANBIEN */
+/* DELETE trigger on THUCHIENPHANBIEN_TIEUCHIPHANBIEN */
 BEGIN
   DECLARE  @errno   int,
            @errmsg  varchar(255)
     /* ERwin Builtin Trigger */
-    /* TIEUCHIPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on parent delete no action */
-    /* ERWIN_RELATION:CHECKSUM="000156e0", PARENT_OWNER="", PARENT_TABLE="TIEUCHIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
+    /* THUCHIENPHANBIEN  THUCHIENPHANBIEN_TIEUCHIPHANBIEN on child delete no action */
+    /* ERWIN_RELATION:CHECKSUM="00020f33", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN_TIEUCHIPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1024", FK_COLUMNS="TENTIEUCHI" */
-    IF EXISTS (
-      SELECT * FROM deleted,BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
+    FK_CONSTRAINT="R_1059", FK_COLUMNS="BAIPHANBIEN_ID""ID_BAIBAO""NHAKHOAHOC_ID" */
+    IF EXISTS (SELECT * FROM deleted,THUCHIENPHANBIEN
       WHERE
-        /*  %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.TENTIEUCHI = deleted.TENTIEUCHI
+        /* %JoinFKPK(deleted,THUCHIENPHANBIEN," = "," AND") */
+        deleted.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID AND
+        deleted.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO AND
+        deleted.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID AND
+        NOT EXISTS (
+          SELECT * FROM THUCHIENPHANBIEN_TIEUCHIPHANBIEN
+          WHERE
+            /* %JoinFKPK(THUCHIENPHANBIEN_TIEUCHIPHANBIEN,THUCHIENPHANBIEN," = "," AND") */
+            THUCHIENPHANBIEN_TIEUCHIPHANBIEN.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID AND
+            THUCHIENPHANBIEN_TIEUCHIPHANBIEN.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO AND
+            THUCHIENPHANBIEN_TIEUCHIPHANBIEN.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID
+        )
     )
     BEGIN
-      SELECT @errno  = 30001,
-             @errmsg = 'Cannot delete TIEUCHIPHANBIEN because BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN exists.'
+      SELECT @errno  = 30010,
+             @errmsg = 'Cannot delete last THUCHIENPHANBIEN_TIEUCHIPHANBIEN because THUCHIENPHANBIEN exists.'
       GOTO ERROR
     END
 
@@ -3405,44 +2776,54 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
 go
 
 
-CREATE TRIGGER tU_TIEUCHIPHANBIEN ON TIEUCHIPHANBIEN FOR UPDATE AS
+CREATE TRIGGER tU_THUCHIENPHANBIEN_TIEUCHIPHANBIEN ON THUCHIENPHANBIEN_TIEUCHIPHANBIEN FOR UPDATE AS
 /* ERwin Builtin Trigger */
-/* UPDATE trigger on TIEUCHIPHANBIEN */
+/* UPDATE trigger on THUCHIENPHANBIEN_TIEUCHIPHANBIEN */
 BEGIN
   DECLARE  @NUMROWS int,
            @nullcnt int,
            @validcnt int,
-           @insTENTIEUCHI nvarchar(100),
+           @insBAIPHANBIEN_ID nvarchar(100), 
+           @insID_BAIBAO nvarchar(100), 
+           @insMOTA varchar(20),
+           @insNHAKHOAHOC_ID nvarchar(100),
            @errno   int,
            @errmsg  varchar(255)
 
   SELECT @NUMROWS = @@rowcount
   /* ERwin Builtin Trigger */
-  /* TIEUCHIPHANBIEN  BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN on parent update no action */
-  /* ERWIN_RELATION:CHECKSUM="0001676b", PARENT_OWNER="", PARENT_TABLE="TIEUCHIPHANBIEN"
-    CHILD_OWNER="", CHILD_TABLE="BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN"
+  /* THUCHIENPHANBIEN  THUCHIENPHANBIEN_TIEUCHIPHANBIEN on child update no action */
+  /* ERWIN_RELATION:CHECKSUM="0001d418", PARENT_OWNER="", PARENT_TABLE="THUCHIENPHANBIEN"
+    CHILD_OWNER="", CHILD_TABLE="THUCHIENPHANBIEN_TIEUCHIPHANBIEN"
     P2C_VERB_PHRASE="", C2P_VERB_PHRASE="", 
-    FK_CONSTRAINT="R_1024", FK_COLUMNS="TENTIEUCHI" */
+    FK_CONSTRAINT="R_1059", FK_COLUMNS="BAIPHANBIEN_ID""ID_BAIBAO""NHAKHOAHOC_ID" */
   IF
-    /* %ParentPK(" OR",UPDATE) */
-    UPDATE(TENTIEUCHI)
+    /* %ChildFK(" OR",UPDATE) */
+    UPDATE(BAIPHANBIEN_ID) OR
+    UPDATE(ID_BAIBAO) OR
+    UPDATE(NHAKHOAHOC_ID)
   BEGIN
-    IF EXISTS (
-      SELECT * FROM deleted,BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN
-      WHERE
-        /*  %JoinFKPK(BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN,deleted," = "," AND") */
-        BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN.TENTIEUCHI = deleted.TENTIEUCHI
-    )
+    SELECT @nullcnt = 0
+    SELECT @validcnt = count(*)
+      FROM inserted,THUCHIENPHANBIEN
+        WHERE
+          /* %JoinFKPK(inserted,THUCHIENPHANBIEN) */
+          inserted.BAIPHANBIEN_ID = THUCHIENPHANBIEN.BAIPHANBIEN_ID and
+          inserted.ID_BAIBAO = THUCHIENPHANBIEN.ID_BAIBAO and
+          inserted.NHAKHOAHOC_ID = THUCHIENPHANBIEN.NHAKHOAHOC_ID
+    /* %NotnullFK(inserted," IS NULL","select @nullcnt = count(*) from inserted where"," AND") */
+    
+    IF @validcnt + @nullcnt != @NUMROWS
     BEGIN
-      SELECT @errno  = 30005,
-             @errmsg = 'Cannot update TIEUCHIPHANBIEN because BAIPHANBIEN_NGUOICOQUYENPHANBIEN_TIEUCHIPHANBIEN exists.'
+      SELECT @errno  = 30007,
+             @errmsg = 'Cannot update THUCHIENPHANBIEN_TIEUCHIPHANBIEN because THUCHIENPHANBIEN does not exist.'
       GOTO ERROR
     END
   END
@@ -3451,7 +2832,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3493,7 +2874,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3542,7 +2923,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3584,7 +2965,7 @@ BEGIN
     /* ERwin Builtin Trigger */
     RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 
@@ -3634,7 +3015,7 @@ BEGIN
   /* ERwin Builtin Trigger */
   RETURN
 ERROR:
-    raiserror (@errno,@errmsg,1)
+    raiserror (@errmsg, @errno, 1)
     rollback transaction
 END
 

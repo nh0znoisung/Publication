@@ -1,0 +1,6 @@
+CREATE LOGIN Lannest
+	with PASSWORD = '1';
+GO
+
+CREATE USER Lannest FOR LOGIN Lannest;
+GO

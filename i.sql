@@ -1,17 +1,18 @@
 ﻿-- Ban biên tập -> Create View, Role, Permission
 -- Câu 1: Trigger Phân công phản biện
 -- Bảng thực hiện phản biện có vấn đề
+
+go 
 CREATE OR ALTER PROCEDURE capnhat_phancongphanbien
 (
 @BAIPHANBIEN_ID nvarchar(100),
 @ID_BAIBAO nvarchar(100),
-@DIADIEMPHANBIEN datetime,
 @NGAYPHANBIEN varchar(20),
-@NHAKHOAHOC_ID nvarchar(100)
+@DIADIEMPHANBIEN datetime
 )
 AS
 BEGIN
-INSERT INTO PHANCONGPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NGAYPHANBIEN,@DIADIEMPHANBIEN,@NHAKHOAHOC_ID);
+INSERT INTO PHANCONGPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NGAYPHANBIEN,@DIADIEMPHANBIEN);
 --INSERT INTO THUCHIENPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NHAKHOAHOC_ID);
 END;
 go
@@ -147,7 +148,7 @@ WHERE TRANGTHAIXULI='DADANG' AND
 -- Câu 8: Xem bài báo  đã xuất bản của 1 Tác giả - Function input là ID của Tác giả (NHAKHOAHOC_ID)
 -- Trang thai xu ly = XUATBAN, Có cần check id là Tacgia
 -- 
-
+go
 CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Xuatban(@tgID nvarchar(100))
 RETURNS TABLE
 AS
@@ -168,7 +169,7 @@ SELECT * FROM Tacgia_Danhsach_Baibao_Xuatban('200001')
 -- Câu 9: Xem bài báo  đã đăng của 1 Tác giả - Function input là ID của Tác giả (NHAKHOAHOC_ID)
 -- Trang thai xu ly = DADANG, Có cần check id là Tacgia
 -- Phải có Tác giả trước -> Người có quyền tác giả 
-
+go
 CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Dadang(@tgID nvarchar(100))
 RETURNS TABLE
 AS

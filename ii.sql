@@ -8,7 +8,6 @@ Create PROCEDURE capnhatthongtinnhaphanbien (
 @mail nvarchar(100) ,
 @diachi nvarchar(200),
 @chuyenmon nvarchar(100),
-@vaitro nvarchar(100),
 @ngaysinh date,
 @coquancongtac nvarchar(500),
 @nghenghiep nvarchar(100)
@@ -16,7 +15,7 @@ Create PROCEDURE capnhatthongtinnhaphanbien (
 AS
 BEGIN
 UPDATE NHAKHOAHOC 
-SET HO=@ho,TEN=@ten,EMAILCANHAN=@mail,DIACHI=@diachi,CHUYENMON=@chuyenmon,VAITRO=@vaitro,NGAYSINH=@ngaysinh,COQUANCONGTAC=@coquancongtac,NGHENGHIEP=@nghenghiep 
+SET HO=@ho,TEN=@ten,EMAILCANHAN=@mail,DIACHI=@diachi,CHUYENMON=@chuyenmon,NGAYSINH=@ngaysinh,COQUANCONGTAC=@coquancongtac,NGHENGHIEP=@nghenghiep 
  WHERE NHAKHOAHOC_ID = @ID_phanbienvien
 END
 go

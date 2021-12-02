@@ -6,7 +6,6 @@ Create PROCEDURE Capnhatthongtin_Tacgiall (
 @mail nvarchar(100) ,
 @diachi nvarchar(200),
 @chuyenmon nvarchar(100),
-@vaitro nvarchar(100),
 @ngaysinh date,
 @coquancongtac nvarchar(500),
 @nghenghiep nvarchar(100)
@@ -14,7 +13,7 @@ Create PROCEDURE Capnhatthongtin_Tacgiall (
 AS
 BEGIN
 UPDATE NHAKHOAHOC 
-SET HO=@ho,TEN=@ten,EMAILCANHAN=@mail,DIACHI=@diachi,CHUYENMON=@chuyenmon,VAITRO=@vaitro,NGAYSINH=@ngaysinh,COQUANCONGTAC=@coquancongtac,NGHENGHIEP=@nghenghiep 
+SET HO=@ho,TEN=@ten,EMAILCANHAN=@mail,DIACHI=@diachi,CHUYENMON=@chuyenmon,NGAYSINH=@ngaysinh,COQUANCONGTAC=@coquancongtac,NGHENGHIEP=@nghenghiep 
  WHERE NHAKHOAHOC_ID = @ID_tacgiall
 END
 go
@@ -37,10 +36,11 @@ set
 	TIEUDE = @tieude ,
 	TOMTAT=  @tomtat ,
 	TONGSOTRANG= @tongsotrang 
-where ID_BAIBAO = @id_BAIBAO AND @id_BAIBAO IN (
-	SELECT [TENBAIBAO]  FROM TACGIALIENLAC 
-	where NHAKHOAHOC_ID = @ID_tacgiall
-	) 
+where ID_BAIBAO = @id_BAIBAO 
+	AND @ID_tacgiall IN (
+	SELECT  NHAKHOAHOC_ID FROM TACGIALIENLAC 
+	)
+	AND NHAKHOAHOC_ID = @ID_tacgiall  
 end
 go
 --iii.3
@@ -71,17 +71,16 @@ go
 create procedure Xemds_Cacbaibao_trong1nam 
 (@year int)
 as 
-select TGLL.NHAKHOAHOC_ID,TGLL.THOIGIANGUI,BB.* from 
-TACGIALIENLAC TGLL inner join BAIBAO BB on TGLL.TENBAIBAO=BB.ID_BAIBAO
-Where  YEAR(TGLL.THOIGIANGUI)=@year
+select BB.NHAKHOAHOC_ID,BB.NGAYNHAN,BB.* from 
+ BAIBAO BB 
+Where  YEAR(BB.NGAYNHAN)=@year
 go
 -- iii.7
 create procedure Xemds_Cacbaibao_dadcdang_trong1nam 
 (@year int)
 as 
 select BBDDCN.*,BB.* from 
-TACGIALIENLAC TGLL inner join BAIBAODADUOCCHAPNHAN BBDDCN on TGLL.TENBAIBAO=BBDDCN.ID_BAIBAO
-inner join BAIBAO BB on TGLL.TENBAIBAO=BB.ID_BAIBAO
+BAIBAODADUOCCHAPNHAN BBDDCN inner join BAIBAO BB on BBDDCN.ID_BAIBAO=BB.ID_BAIBAO
 Where  BBDDCN.NAMXUATBAN=@year
 go
 -- iii.8
@@ -103,8 +102,8 @@ GO
 create procedure Tongbb_daguitapchi_trong5namgannhat
 as
 select count(*) AS TONG from
-TACGIALIENLAC
-where YEAR( CURRENT_TIMESTAMP) - Year( THOIGIANGUI) <=5
+BAIBAO
+where YEAR( CURRENT_TIMESTAMP) - Year( NGAYNHAN) <=5
 go
 -- iii.11
 create procedure Tongbb_Nghiencuu_dadang_trong5namgannhat

@@ -19,20 +19,6 @@ go
 
 
 -- Câu 2: Trigger Trạng thái xử lý 1 bài báo # Chỉ được chuyển 1 bậc
--- CHuyển thành procedure để mỗi khi gọi thì nó sẽ chỉnh lên 1 bậc, dùng If_else
--- Chưa phản biện, Proceduce -> có 1 input, vì Function phải return gì đó
---IF (TRANGTHAIXULI = 'CHUAPHANBIEN') THEN
---	SET TRANGTHAIXULI = 'PHANBIEN'
---ELSEIF TRANGTHAIXULI = 'PHANBIEN'
---	SET TRANGTHAIXULI = 'PHANHOIPHANBIEN'
---IF TRANGTHAIXULI = 'PHANHOIPHANBIEN'
---	SET TRANGTHAIXULI = 'HOANTATPHANBIEN'
---IF TRANGTHAIXULI = 'HOANTATPHANBIEN'
---	SET TRANGTHAIXULI = 'XUATBAN'
---IF TRANGTHAIXULI = 'XUATBAN'
---	SET TRANGTHAIXULI = 'DADANG'
---IF TRANGTHAIXULI = 'DADANG'
---	SET TRANGTHAIXULI = ''
 CREATE OR ALTER PROCEDURE capnhat_trangthaixuly 
 (
 @id_baibao nvarchar(100),

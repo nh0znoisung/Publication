@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D7ABC814-96FD-4167-A520-9BF281A3B253}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>Publication</RootNamespace>
+    <AssemblyName>Publication</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AdvancedDataGridView">
+      <HintPath>..\packages\ADGV.0.1.0.10\lib\net40\AdvancedDataGridView.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BBTChange.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BBTChange.Designer.cs">
+      <DependentUpon>BBTChange.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BBTMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BBTMain.Designer.cs">
+      <DependentUpon>BBTMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BBTTask.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BBTTask.Designer.cs">
+      <DependentUpon>BBTTask.cs</DependentUpon>
+    </Compile>
+    <Compile Include="BBTView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BBTView.Designer.cs">
+      <DependentUpon>BBTView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Login.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Login.Designer.cs">
+      <DependentUpon>Login.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NPBChange.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NPBChange.Designer.cs">
+      <DependentUpon>NPBChange.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NPBChange_TG.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NPBChange_TG.Designer.cs">
+      <DependentUpon>NPBChange_TG.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NPBMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NPBMain.Designer.cs">
+      <DependentUpon>NPBMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NPBTask.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NPBTask.Designer.cs">
+      <DependentUpon>NPBTask.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NPBView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NPBView.Designer.cs">
+      <DependentUpon>NPBView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TGChange.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TGChange.Designer.cs">
+      <DependentUpon>TGChange.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TGMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TGMain.Designer.cs">
+      <DependentUpon>TGMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TGView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TGView.Designer.cs">
+      <DependentUpon>TGView.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="BBTChange.resx">
+      <DependentUpon>BBTChange.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BBTMain.resx">
+      <DependentUpon>BBTMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BBTTask.resx">
+      <DependentUpon>BBTTask.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BBTView.resx">
+      <DependentUpon>BBTView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Login.resx">
+      <DependentUpon>Login.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NPBChange.resx">
+      <DependentUpon>NPBChange.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NPBChange_TG.resx">
+      <DependentUpon>NPBChange_TG.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NPBMain.resx">
+      <DependentUpon>NPBMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NPBTask.resx">
+      <DependentUpon>NPBTask.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NPBView.resx">
+      <DependentUpon>NPBView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="TGChange.resx">
+      <DependentUpon>TGChange.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TGMain.resx">
+      <DependentUpon>TGMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TGView.resx">
+      <DependentUpon>TGView.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

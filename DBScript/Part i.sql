@@ -1,37 +1,24 @@
 ﻿-- Ban biên tập -> Create View, Role, Permission
 -- Câu 1: Trigger Phân công phản biện
 -- Bảng thực hiện phản biện có vấn đề
+
+go 
 CREATE OR ALTER PROCEDURE capnhat_phancongphanbien
 (
 @BAIPHANBIEN_ID nvarchar(100),
 @ID_BAIBAO nvarchar(100),
-@DIADIEMPHANBIEN datetime,
 @NGAYPHANBIEN varchar(20),
-@NHAKHOAHOC_ID nvarchar(100)
+@DIADIEMPHANBIEN datetime
 )
 AS
 BEGIN
-INSERT INTO PHANCONGPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NGAYPHANBIEN,@DIADIEMPHANBIEN,@NHAKHOAHOC_ID);
+INSERT INTO PHANCONGPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NGAYPHANBIEN,@DIADIEMPHANBIEN);
 --INSERT INTO THUCHIENPHANBIEN VALUES (@BAIPHANBIEN_ID,@ID_BAIBAO,@NHAKHOAHOC_ID);
 END;
 go
 
 
 -- Câu 2: Trigger Trạng thái xử lý 1 bài báo # Chỉ được chuyển 1 bậc
--- CHuyển thành procedure để mỗi khi gọi thì nó sẽ chỉnh lên 1 bậc, dùng If_else
--- Chưa phản biện, Proceduce -> có 1 input, vì Function phải return gì đó
---IF (TRANGTHAIXULI = 'CHUAPHANBIEN') THEN
---	SET TRANGTHAIXULI = 'PHANBIEN'
---ELSEIF TRANGTHAIXULI = 'PHANBIEN'
---	SET TRANGTHAIXULI = 'PHANHOIPHANBIEN'
---IF TRANGTHAIXULI = 'PHANHOIPHANBIEN'
---	SET TRANGTHAIXULI = 'HOANTATPHANBIEN'
---IF TRANGTHAIXULI = 'HOANTATPHANBIEN'
---	SET TRANGTHAIXULI = 'XUATBAN'
---IF TRANGTHAIXULI = 'XUATBAN'
---	SET TRANGTHAIXULI = 'DADANG'
---IF TRANGTHAIXULI = 'DADANG'
---	SET TRANGTHAIXULI = ''
 CREATE OR ALTER PROCEDURE capnhat_trangthaixuly 
 (
 @id_baibao nvarchar(100),
@@ -147,7 +134,7 @@ WHERE TRANGTHAIXULI='DADANG' AND
 -- Câu 8: Xem bài báo  đã xuất bản của 1 Tác giả - Function input là ID của Tác giả (NHAKHOAHOC_ID)
 -- Trang thai xu ly = XUATBAN, Có cần check id là Tacgia
 -- 
-
+go
 CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Xuatban(@tgID nvarchar(100))
 RETURNS TABLE
 AS
@@ -168,7 +155,7 @@ SELECT * FROM Tacgia_Danhsach_Baibao_Xuatban('200001')
 -- Câu 9: Xem bài báo  đã đăng của 1 Tác giả - Function input là ID của Tác giả (NHAKHOAHOC_ID)
 -- Trang thai xu ly = DADANG, Có cần check id là Tacgia
 -- Phải có Tác giả trước -> Người có quyền tác giả 
-
+go
 CREATE OR ALTER FUNCTION Tacgia_Danhsach_Baibao_Dadang(@tgID nvarchar(100))
 RETURNS TABLE
 AS
